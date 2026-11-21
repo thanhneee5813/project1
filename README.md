@@ -8,7 +8,7 @@
 
 Dự án xây dựng, đánh giá và so sánh các mô hình dự đoán tình trạng nghỉ việc (`Attrition`) của nhân viên dựa trên dữ liệu nhân sự.
 
-Các mô hình dự kiến triển khai:
+Các mô hình đã triển khai:
 
 - Logistic Regression
 - CatBoost
@@ -82,7 +82,7 @@ Không đưa dữ liệu cá nhân hoặc dữ liệu nhân viên thực tế, n
 
 | Công nghệ | Mục đích |
 |---|---|
-| Python 3.13.3 | Ngôn ngữ lập trình |
+| Python 3.13.3 | Ngôn ngữ lập trình (notebook 06 dùng f-string lồng dấu nháy kép nên cần Python ≥ 3.12) |
 | Visual Studio Code | IDE |
 | Jupyter Notebook | Thực hiện từng giai đoạn phân tích và xây dựng mô hình |
 | Pandas | Đọc, xử lý và phân tích dữ liệu |
@@ -96,6 +96,19 @@ Không đưa dữ liệu cá nhân hoặc dữ liệu nhân viên thực tế, n
 | Joblib | Lưu pipeline/model hỗ trợ |
 
 Các thư viện bổ sung sẽ được cài đặt khi đến giai đoạn sử dụng tương ứng.
+
+### Phiên bản đã ghi nhận khi chạy notebook
+
+| Thư viện | Phiên bản |
+|---|---|
+| Python (kernel `.venv`) | 3.13.3 |
+| pandas | 3.1.1 |
+| NumPy | 2.5.4 |
+| scikit-learn | 1.9.1 |
+| TensorFlow | 2.21.0 |
+| CatBoost, SHAP | Chưa được ghi lại trong output; chạy `python -m pip freeze` trong `.venv` để lấy phiên bản |
+
+Các phiên bản trên lấy từ output thực tế của notebook, dùng để đối chiếu khi gặp lỗi tương thích.
 
 ---
 
@@ -116,10 +129,23 @@ Employee-Attrition-Prediction/
 │   └── 06_model_evaluation.ipynb
 │
 ├── models/
-│   └── (các model sau khi huấn luyện)
+│   ├── logistic_regression_pipeline.pkl
+│   ├── catboost_model.cbm
+│   └── employee_attrition_mlp.keras
 │
 ├── results/
-│   └── (metrics, predictions, feature importance và kết quả)
+│   ├── ml_model_comparison.csv
+│   ├── ml_predictions.csv
+│   ├── catboost_feature_importance.csv
+│   ├── mlp_model_results.csv
+│   ├── mlp_predictions.csv
+│   ├── all_model_comparison.csv
+│   ├── model_ranking_by_f1.csv
+│   ├── best_model_by_metric.csv
+│   ├── catboost_shap_importance.csv
+│   └── plots/
+│       ├── catboost_shap_bar.png
+│       └── catboost_shap_beeswarm.png
 │
 ├── report/
 │   └── (báo cáo đồ án và tài liệu)
@@ -136,16 +162,24 @@ Employee-Attrition-Prediction/
 |---|---|
 | `01_data_collection.ipynb` | Đọc dataset, kiểm tra kích thước, kiểu dữ liệu, missing values, duplicate và phân bố target ban đầu |
 | `02_data_exploration.ipynb` | EDA, thống kê và trực quan hóa dữ liệu |
-| `03_data_preprocessing.ipynb` | Làm sạch, loại bỏ cột không cần thiết, encoding, scaling và chia dữ liệu |
+| `03_data_preprocessing.ipynb` | Loại bỏ cột không cần thiết, mã hóa target, chia train/test, One-Hot Encoding, scaling và kiểm tra dữ liệu sau xử lý (không lưu dữ liệu đã xử lý ra file) |
 | `04_machine_learning.ipynb` | Huấn luyện và đánh giá Logistic Regression, CatBoost |
 | `05_deep_learning.ipynb` | Xây dựng, huấn luyện và đánh giá MLP |
-| `06_model_evaluation.ipynb` | So sánh các mô hình, đánh giá sâu, threshold và giải thích mô hình bằng SHAP |
+| `06_model_evaluation.ipynb` | Gộp kết quả 3 mô hình, bảng so sánh và xếp hạng, ROC/PR curves chung, SHAP (beeswarm, bar, waterfall) cho CatBoost |
 
 ### Thư mục đầu ra
 
 - `models/`: lưu mô hình đã huấn luyện và pipeline.
 - `results/`: lưu metrics, dự đoán, feature importance và các kết quả phân tích.
 - `report/`: lưu báo cáo cuối kỳ, hình ảnh và tài liệu liên quan.
+
+| Notebook ghi file | File tạo ra |
+|---|---|
+| `04_machine_learning.ipynb` | `results/ml_model_comparison.csv`, `results/catboost_feature_importance.csv`, `results/ml_predictions.csv`, `models/logistic_regression_pipeline.pkl`, `models/catboost_model.cbm` |
+| `05_deep_learning.ipynb` | `results/mlp_model_results.csv`, `results/mlp_predictions.csv`, `models/employee_attrition_mlp.keras` |
+| `06_model_evaluation.ipynb` | `results/all_model_comparison.csv`, `results/model_ranking_by_f1.csv`, `results/best_model_by_metric.csv`, `results/catboost_shap_importance.csv`, `results/plots/catboost_shap_bar.png`, `results/plots/catboost_shap_beeswarm.png` |
+
+Notebook 01, 02 và 03 không ghi file đầu ra. Biểu đồ SHAP waterfall chỉ hiển thị trong notebook, chưa được lưu thành file.
 
 ---
 
@@ -307,7 +341,18 @@ Trong mỗi Notebook:
 3. Kiểm tra output và xử lý lỗi trước khi chạy tiếp.
 4. Lưu Notebook bằng `Ctrl + S`.
 
-Không nên chạy các Notebook sau khi chưa hoàn thành và kiểm tra đầu ra cần thiết từ các bước trước.
+Các Notebook dùng `Path.cwd().parent` làm thư mục gốc, nên phải chạy với thư mục làm việc là `notebooks/` (mặc định của VS Code khi mở Notebook từ thư mục này).
+
+### Phụ thuộc giữa các Notebook
+
+| Notebook | Cần gì trước khi chạy |
+|---|---|
+| 01, 02, 03 | Chỉ cần file CSV trong `dataset/` |
+| 04 | Chỉ cần file CSV (tự tiền xử lý và chia dữ liệu lại, không đọc kết quả của 03) |
+| 05 | Chỉ cần file CSV (tự tiền xử lý và chia dữ liệu lại, không đọc kết quả của 03) |
+| 06 | **Bắt buộc chạy xong 04 và 05**: đọc `results/ml_model_comparison.csv`, `results/mlp_model_results.csv`, `results/ml_predictions.csv`, `results/mlp_predictions.csv` và `models/catboost_model.cbm` |
+
+Vì 04 và 05 đều tạo lại train/test split bằng cùng cấu hình (`test_size=0.2`, `random_state=42`, `stratify=y`), nếu thay đổi cách chia dữ liệu thì phải đổi đồng bộ ở cả 03, 04 và 05.
 
 ### Đầu ra dự kiến theo giai đoạn
 
@@ -315,11 +360,30 @@ Không nên chạy các Notebook sau khi chưa hoàn thành và kiểm tra đầ
 |---|---|
 | Data Collection | Dataset được tải, đọc và kiểm tra |
 | EDA | Thống kê, biểu đồ phân bố và phân tích dữ liệu |
-| Preprocessing | Dữ liệu train/test đã được xử lý cho mô hình |
+| Preprocessing | Kiểm tra shape, missing/infinite values và scaling của dữ liệu đã xử lý (chỉ hiển thị trong Notebook, chưa lưu ra file) |
 | Machine Learning | Metrics, classification reports, predictions, model files và CatBoost feature importance |
 | Deep Learning | MLP, training history, metrics, predictions và model file |
-| Model Evaluation | Bảng so sánh, ROC/PR curves, phân tích threshold và SHAP |
+| Model Evaluation | Bảng so sánh, xếp hạng, ROC/PR curves chung và SHAP |
 | Final Report | Báo cáo phương pháp, kết quả, thảo luận, hạn chế và kết luận |
+
+### Tóm tắt kết quả EDA
+
+Số liệu lấy từ output của `02_data_exploration.ipynb`. Đây là các mối liên hệ thống kê mô tả, không chứng minh quan hệ nhân quả.
+
+| Đặc trưng | Quan sát |
+|---|---|
+| OverTime | Làm thêm giờ: 30,53% nghỉ việc; không làm thêm giờ: 10,44% |
+| JobRole | Sales Representative có tỷ lệ nghỉ việc cao nhất trong các nhóm đã tổng hợp (39,76%) |
+| MaritalStatus | Single: 25,53% |
+| Department | Sales 20,63%, Human Resources 19,05%, Research & Development 13,84% |
+| JobSatisfaction | Mức 1: 22,84%; mức 4: 11,33% |
+| Gender | Nam 17,01%, nữ 14,80% |
+| Age | Trung bình 33,61 (nghỉ việc) so với 37,56 (ở lại) |
+| MonthlyIncome | Trung vị 3.202 (nghỉ việc) so với 5.204 (ở lại) |
+| YearsAtCompany | Trung vị 3 năm (nghỉ việc) so với 6 năm (ở lại) |
+| DistanceFromHome | Trung bình 10,63 (nghỉ việc) so với 8,92 (ở lại) |
+
+Năm đặc trưng có Feature Importance cao nhất của CatBoost (`04_machine_learning.ipynb`): JobRole (7,66), OverTime (6,82), Age (5,71), MonthlyIncome (4,96), NumCompaniesWorked (4,58).
 
 ---
 
@@ -340,11 +404,11 @@ Do nhóm Attrition = Yes chiếm tỷ lệ thấp, **không nên chỉ dựa và
 
 ---
 
-## 11. Baseline Results – Machine Learning
+## 11. Kết quả thực nghiệm
 
 Stage 5 đã triển khai Logistic Regression và CatBoost trên cùng train/test split với cấu hình baseline.
 
-### Kết quả lần chạy baseline
+### Baseline – Machine Learning
 
 | Model | Accuracy | Precision | Recall | F1-score | ROC-AUC | PR-AUC |
 |---|---:|---:|---:|---:|---:|---:|
@@ -360,6 +424,42 @@ Stage 5 đã triển khai Logistic Regression và CatBoost trên cùng train/tes
 
 Đây là kết quả của cấu hình baseline, chưa phải kết quả cuối cùng sau tuning, threshold optimization hoặc các phương pháp xử lý mất cân bằng khác.
 
+### Cấu hình thực nghiệm
+
+| Hạng mục | Cấu hình ghi nhận từ Notebook |
+|---|---|
+| Cột bị loại | `EmployeeNumber`, `EmployeeCount`, `Over18`, `StandardHours` (35 cột còn 31 cột, gồm 30 feature và `Attrition`) |
+| Target | `No` = 0, `Yes` = 1 |
+| Feature | 7 categorical, 23 numerical |
+| Train/Test split | 80/20, `random_state=42`, `stratify=y`: train 1.176 dòng (986 No / 190 Yes), test 294 dòng (247 No / 47 Yes) |
+| Tiền xử lý cho Logistic Regression và MLP | `OneHotEncoder(handle_unknown="ignore")` + `StandardScaler`, tạo 51 feature |
+| Tiền xử lý cho CatBoost | Giữ dữ liệu gốc, khai báo `cat_features` |
+| Logistic Regression | `LogisticRegression(max_iter=1000, random_state=42)` trong Pipeline cùng preprocessing; không dùng `class_weight` |
+| CatBoost | `iterations=500`, `depth=6`, `learning_rate=0.03`, `Logloss`, `eval_metric=AUC`, `random_seed=42`; không dùng trọng số lớp |
+| MLP | Dense 128 → Dropout 0.3 → Dense 64 → Dropout 0.3 → Dense 32 → Dense 1 (sigmoid), 17.025 tham số; Adam (`learning_rate=0.001`), `binary_crossentropy`, `batch_size=32`, tối đa 100 epoch |
+| MLP: validation | Tách 15% từ train: 999 mẫu train, 177 mẫu validation |
+| MLP: callbacks | `EarlyStopping` (theo `val_loss`, `patience=10`, khôi phục weights tốt nhất), `ReduceLROnPlateau` (`factor=0.5`, `patience=5`, `min_lr=0.00001`) |
+| MLP: xử lý mất cân bằng | `class_weight` = {0: 0,596, 1: 3,102} |
+| Ngưỡng phân loại | 0.5 cho cả ba mô hình |
+
+### Kết quả MLP và so sánh ba mô hình
+
+Bảng dưới lấy từ output của `06_model_evaluation.ipynb` (đọc từ các file CSV trong `results/`), sắp xếp theo F1-score:
+
+| Model | Accuracy | Precision | Recall | F1-score | ROC-AUC | PR-AUC |
+|---|---:|---:|---:|---:|---:|---:|
+| MLP Neural Network | 0.8537 | 0.5417 | 0.5532 | 0.5474 | 0.7893 | 0.5330 |
+| Logistic Regression | 0.8605 | 0.6154 | 0.3404 | 0.4384 | 0.8115 | 0.5836 |
+| CatBoost | 0.8537 | 0.6667 | 0.1702 | 0.2712 | 0.8118 | 0.5327 |
+
+> **Lưu ý về MLP:** output đang lưu trong `05_deep_learning.ipynb` là một lần chạy khác (Accuracy 0.8503, Precision 0.5294, Recall 0.5745, F1-score 0.5510, ROC-AUC 0.7868, PR-AUC 0.5409; huấn luyện dừng ở epoch 28, khôi phục weights của epoch 18). Hai lần chạy MLP cho kết quả lệch nhau dù đã đặt seed, nên các con số của MLP chỉ nên dùng như một lần chạy cụ thể. Cần chạy lại 05 và 06 sau khi cố định seed (xem phần "Vấn đề đã biết và việc cần làm") trước khi đưa số liệu cuối vào báo cáo.
+
+Nhận xét:
+
+- MLP có Recall và F1-score cao nhất, nhưng MLP dùng `class_weight` còn Logistic Regression và CatBoost thì không, nên so sánh này chưa hoàn toàn công bằng.
+- Logistic Regression cao nhất ở Accuracy và PR-AUC; CatBoost cao nhất ở Precision và ROC-AUC (chênh lệch ROC-AUC với Logistic Regression chỉ 0.0003).
+- Tập test chỉ có 47 mẫu thuộc lớp nghỉ việc, nên chênh lệch nhỏ giữa các mô hình có thể không có ý nghĩa thống kê.
+
 ---
 
 ## 12. Reproducibility và tránh Data Leakage
@@ -367,13 +467,16 @@ Stage 5 đã triển khai Logistic Regression và CatBoost trên cùng train/tes
 Để tăng tính công bằng khi so sánh mô hình:
 
 - Sử dụng `random_state=42` cho các bước chia dữ liệu có hỗ trợ tham số này.
-- Các mô hình được đánh giá trên cùng tập test khi có thể.
-- Không sử dụng test set để tuning hyperparameters hoặc chọn threshold.
-- Fit preprocessing trên dữ liệu train, sau đó mới transform validation/test.
+- Notebook 04 và 05 cùng gọi `train_test_split(test_size=0.2, random_state=42, stratify=y)` trên cùng `X`, `y`, nên cùng một tập test 294 dòng và cùng thứ tự. File predictions hiện không lưu chỉ số dòng, và notebook 06 chưa có bước kiểm tra tự động rằng cột `Actual` của hai file khớp nhau.
+- Hiện chưa tuning hyperparameters và chưa chọn threshold; cả ba mô hình dùng ngưỡng 0.5 và cấu hình cố định. Không sử dụng test set để tuning hoặc chọn threshold khi bổ sung các bước này.
+- Fit preprocessing trên dữ liệu train, sau đó mới transform test. Với MLP, validation được tách ra sau khi `fit_transform` trên toàn bộ train, nên scaler/encoder đã học cả phần validation; ảnh hưởng nhỏ nhưng cần ghi nhận.
 - Với Deep Learning, sử dụng validation set để theo dõi quá trình training và Early Stopping.
+- Chỉ MLP dùng `class_weight`; Logistic Regression và CatBoost chưa xử lý mất cân bằng lớp. Cần ghi rõ điều này khi so sánh Recall và F1-score.
 - Lưu cấu hình, metrics và output của các lần thử nghiệm để có thể đối chiếu.
 
 > Việc cố định random seed giúp tái lập một phần kết quả, nhưng không đảm bảo mọi môi trường phần cứng hoặc phiên bản thư viện sẽ tạo ra kết quả hoàn toàn giống nhau.
+
+> Notebook 05 mới gọi `np.random.seed(42)` và `tf.random.set_seed(42)`. Kết quả MLP lưu trong `results/` và output hiện có của notebook 05 khác nhau, nên cần cố định seed chặt hơn (xem phần "Vấn đề đã biết và việc cần làm").
 
 ---
 
@@ -442,6 +545,19 @@ python -m pip install --upgrade pip
 4. Đọc kỹ thông báo lỗi cài đặt và kiểm tra khả năng tương thích của package với Python hiện tại.
 5. Không cài package vào một Python khác với Kernel đang chạy Notebook.
 
+### Notebook 06 báo `FileNotFoundError` hoặc `SyntaxError`
+
+- `FileNotFoundError` khi đọc `results/*.csv` hoặc `models/catboost_model.cbm`: chạy xong notebook 04 và 05 trước.
+- `SyntaxError` ở cell Precision-Recall curve: Python < 3.12 không cho dùng cùng loại dấu nháy lồng trong f-string. Dùng Python 3.12 trở lên hoặc đổi dấu nháy bên trong f-string.
+
+### Cảnh báo `Pandas4Warning` khi dùng `select_dtypes(include=["object"])`
+
+Với pandas 3.x, cảnh báo này xuất hiện ở notebook 02, 03, 04, 05 và 06. Kết quả vẫn đúng; có thể bỏ cảnh báo bằng cách dùng `include=["object", "string"]`.
+
+### Cảnh báo TensorFlow không hỗ trợ GPU trên Windows
+
+Từ TensorFlow 2.11, bản native Windows chỉ chạy trên CPU. Đây là cảnh báo, không phải lỗi; MLP của dự án đủ nhỏ để huấn luyện bằng CPU.
+
 ---
 
 ## 14. .gitignore
@@ -485,39 +601,56 @@ Dataset, model và kết quả có thể được quản lý riêng tùy mục �
 |---|---|---|
 | 1 | Problem Definition | Hoàn thành |
 | 2 | Data Collection | Đã thực hiện và kiểm tra dataset |
-| 3 | Exploratory Data Analysis (EDA) | Cần xác nhận hoàn tất Notebook và output |
-| 4 | Data Preprocessing | Đã xây dựng code; cần xác nhận lần chạy hoàn chỉnh |
-| 5 | Machine Learning | Hoàn thành baseline Logistic Regression và CatBoost |
-| 6 | Deep Learning (MLP) | Đã xây dựng hướng dẫn/code; chưa xác nhận training hoàn tất |
-| 7 | Model Evaluation & Explainability (SHAP) | Chưa thực hiện |
+| 3 | Exploratory Data Analysis (EDA) | Hoàn thành (Notebook 02 có đầy đủ output) |
+| 4 | Data Preprocessing | Hoàn thành và đã kiểm tra output; dữ liệu đã xử lý chưa được lưu ra file (04 và 05 tự tiền xử lý lại) |
+| 5 | Machine Learning | Hoàn thành baseline Logistic Regression và CatBoost; đã lưu model và kết quả |
+| 6 | Deep Learning (MLP) | Hoàn thành huấn luyện, đánh giá và lưu model/kết quả; cần cố định seed để tái lập |
+| 7 | Model Evaluation & Explainability (SHAP) | Đã có code đầy đủ; Notebook 06 chỉ còn output ở phần lưu SHAP plots và xếp hạng, cần chạy lại toàn bộ để lưu output |
 | 8 | Final Report | Chưa thực hiện |
 
 ---
 
-
-
----
-
-## 16. Stage 7 – Model Evaluation & Explainability (In Progress)
+## 16. Stage 7 – Model Evaluation & Explainability
 
 ### Objectives
+
 - Compare Logistic Regression, CatBoost, and MLP using a unified metrics table.
 - Visualize Accuracy, Precision, Recall, F1-score, ROC-AUC, and PR-AUC.
 - Compare ROC and Precision-Recall curves using prediction probabilities from the same test split.
 - Explain CatBoost predictions with SHAP, including global feature importance and individual predictions.
 
-### Planned notebook sections
-- Model comparison table and best model by metric
-- Metric comparison charts, including Recall and F1-score
-- Combined ROC and Precision-Recall curves
-- SHAP global summary (beeswarm and bar plots)
-- SHAP local explanation (waterfall plot)
+### Nội dung notebook `06_model_evaluation.ipynb`
 
-### Expected outputs
-- `results/all_model_comparison.csv`
-- SHAP plots for global and individual explanations
+- Đọc kết quả từ `results/` (Stage 5 và Stage 6), chuẩn hóa tên cột và gộp thành bảng so sánh 3 mô hình.
+- Tìm mô hình tốt nhất theo từng metric; biểu đồ cột cho toàn bộ metric, riêng Recall và F1-score.
+- ROC curve và Precision-Recall curve chung cho 3 mô hình, tính từ `ml_predictions.csv` và `mlp_predictions.csv`.
+- SHAP cho CatBoost: beeswarm, bar plot (mean absolute SHAP), waterfall cho một mẫu.
+- Xếp hạng mô hình theo F1-score và lưu kết quả.
 
-Stage 7 is in progress. The analysis and plots must be run and reviewed before marking this stage complete. Confirm that prediction files from Stage 5 and Stage 6 refer to the same test rows and ordering before drawing combined curves.
+### Đầu ra
+
+- `results/all_model_comparison.csv`, `results/best_model_by_metric.csv`, `results/model_ranking_by_f1.csv`
+- `results/catboost_shap_importance.csv`
+- `results/plots/catboost_shap_bar.png`, `results/plots/catboost_shap_beeswarm.png`
+
+### Lưu ý khi diễn giải SHAP
+
+- SHAP được tính trên 300 dòng lấy ngẫu nhiên (`random_state=42`) từ **toàn bộ** dataset, bao gồm cả các dòng CatBoost đã dùng để huấn luyện. Kết quả mô tả cách mô hình sử dụng đặc trưng, không phải đánh giá trên dữ liệu chưa thấy.
+- Biểu đồ waterfall giải thích dòng đầu tiên của mẫu SHAP, không phải một dòng được chọn từ tập test.
+- SHAP chỉ áp dụng cho CatBoost, mô hình có Recall và F1-score thấp nhất ở ngưỡng 0.5. Mô hình có F1-score cao nhất (MLP) chưa được giải thích bằng SHAP.
+- SHAP phản ánh đóng góp của đặc trưng vào dự đoán của mô hình, không chứng minh quan hệ nhân quả.
+
+### Vấn đề đã biết và việc cần làm
+
+1. **Chạy lại toàn bộ notebook 06** (Run All) để lưu output của tất cả cell; hiện chỉ các cell lưu SHAP plots và xếp hạng còn output. Notebook này cũng chưa có kernel metadata.
+2. **Cố định seed cho MLP** trước khi báo cáo số liệu: thêm `tf.keras.utils.set_random_seed(42)` và `tf.config.experimental.enable_op_determinism()` ở đầu notebook 05, chạy lại 05 rồi 06 để `results/` và output khớp nhau. Có thể chạy nhiều seed và báo cáo trung bình ± độ lệch chuẩn.
+3. **Kiểm tra cùng tập test** trong notebook 06 trước khi vẽ đường cong chung, ví dụ: `assert (ml_predictions["Actual"].values == mlp_predictions["Actual"].values).all()`.
+4. **Lưu preprocessor của MLP** (ví dụ bằng `joblib.dump(preprocessor, ...)` trong notebook 05). File `employee_attrition_mlp.keras` chỉ chứa mạng nơ-ron; không có preprocessor thì không thể dự đoán trên dữ liệu thô.
+5. **Cân bằng điều kiện so sánh**: thử `class_weight="balanced"` cho Logistic Regression và `auto_class_weights="Balanced"` cho CatBoost, hoặc nêu rõ trong báo cáo rằng chỉ MLP có xử lý mất cân bằng lớp.
+6. **Phân tích threshold** (đã dự kiến ở phần giới thiệu Stage 7) chưa được triển khai. Nếu thực hiện, chọn threshold trên validation hoặc bằng cross-validation, không chọn trên test set.
+7. Sửa lỗi nhỏ: notebook 03 in toàn bộ `y_test` thay vì `y_test.shape` ở cell chia train/test.
+
+Stage 7 chỉ được đánh dấu hoàn thành sau khi các cell được chạy lại, output được kiểm tra và các mục trên được xử lý hoặc ghi rõ là hạn chế của đồ án.
 
 ## 17. README Update Guidelines
 
